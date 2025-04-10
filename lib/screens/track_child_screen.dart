@@ -52,76 +52,37 @@ class _TrackChildScreenState extends State<TrackChildScreen> {
         backgroundColor: Theme.of(context).primaryColor,
       ),
       drawer: _buildDrawer(context),
-      body: SingleChildScrollView(
-        child: Padding(
-          padding: const EdgeInsets.all(16.0),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              const Text(
-                'Track My Child',
-                style: TextStyle(
-                  fontSize: 28,
-                  fontWeight: FontWeight.bold,
-                ),
+      body: Stack(
+        children: [
+          GoogleMap(
+            initialCameraPosition: CameraPosition(
+              target: _childLocation,
+              zoom: 15,
+            ),
+            onMapCreated: _onMapCreated,
+            markers: {
+              Marker(
+                markerId: const MarkerId('child'),
+                position: _childLocation,
+                icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueAzure),
+                infoWindow: const InfoWindow(title: 'Child Location'),
               ),
-              const SizedBox(height: 20),
-              Container(
-                width: double.infinity,
-                height: 250,
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: Colors.grey.shade200),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.grey.withOpacity(0.1),
-                      spreadRadius: 1,
-                      blurRadius: 4,
-                      offset: const Offset(0, 2),
-                    ),
-                  ],
-                ),
-                child: Stack(
-                  children: [
-                    ClipRRect(
-                      borderRadius: BorderRadius.circular(12),
-                      child: GoogleMap(
-                        initialCameraPosition: CameraPosition(
-                          target: _childLocation,
-                          zoom: 15,
-                        ),
-                        onMapCreated: _onMapCreated,
-                        markers: {
-                          Marker(
-                            markerId: const MarkerId('child'),
-                            position: _childLocation,
-                            icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueAzure),
-                            infoWindow: const InfoWindow(title: 'Child Location'),
-                          ),
-                        },
-                        myLocationEnabled: true,
-                        zoomControlsEnabled: false,
-                      ),
-                    ),
-                    Positioned(
-                      right: 10,
-                      bottom: 10,
-                      child: Column(
-                        children: [
-                          _zoomButton(Icons.add, _zoomIn),
-                          const SizedBox(height: 8),
-                          _zoomButton(Icons.remove, _zoomOut),
-                        ],
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(height: 20),
-              _buildJourneyStatus(context),
-            ],
+            },
+            myLocationEnabled: true,
+            zoomControlsEnabled: false,
           ),
-        ),
+          Positioned(
+            top: 16,
+            right: 16,
+            child: Column(
+              children: [
+                _zoomButton(Icons.add, _zoomIn),
+                const SizedBox(height: 8),
+                _zoomButton(Icons.remove, _zoomOut),
+              ],
+            ),
+          ),
+        ],
       ),
       bottomNavigationBar: const BottomNavigation(currentIndex: 0),
     );
@@ -144,61 +105,6 @@ class _TrackChildScreenState extends State<TrackChildScreen> {
         icon: Icon(icon),
         onPressed: onPressed,
       ),
-    );
-  }
-
-  Widget _buildJourneyStatus(BuildContext context) {
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Colors.grey.shade200),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.grey.withOpacity(0.1),
-            spreadRadius: 1,
-            blurRadius: 4,
-            offset: const Offset(0, 2),
-          ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const Text(
-            'Journey Status',
-            style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-          ),
-          const SizedBox(height: 16),
-          _statusRow(context, Icons.calendar_today, 'Current Status', 'In Transit'),
-          const SizedBox(height: 16),
-          _statusRow(context, Icons.location_on, 'Current Location', 'Luwuum Street'),
-          const SizedBox(height: 16),
-          _statusRow(context, Icons.access_time, 'Estimated Arrival Time', '10 minutes'),
-          const SizedBox(height: 16),
-          const Align(
-            alignment: Alignment.centerRight,
-            child: Text(
-              'Last Updated: 04:50:17 PM',
-              style: TextStyle(fontSize: 12, color: Colors.grey),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _statusRow(BuildContext context, IconData icon, String label, String value) {
-    return Row(
-      children: [
-        Icon(icon, color: Theme.of(context).primaryColor),
-        const SizedBox(width: 12),
-        Text(label, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w500)),
-        const Spacer(),
-        Text(value, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w500)),
-      ],
     );
   }
 
