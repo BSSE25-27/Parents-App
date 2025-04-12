@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
-import 'package:provider/provider.dart';
-import 'package:school_van_tracker/providers/auth_provider.dart';
+import 'package:http/http.dart' as http;
+import 'dart:convert';
 import 'package:school_van_tracker/widgets/bottom_navigation.dart';
-import 'package:school_van_tracker/screens/signup_screen.dart'; // Corrected import path for SignupScreen
+import 'package:school_van_tracker/screens/signup_screen.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -13,46 +13,66 @@ class LoginScreen extends StatefulWidget {
 }
 
 class _LoginScreenState extends State<LoginScreen> {
+  final _parentNameController = TextEditingController();
   final _emailController = TextEditingController();
-  final _passwordController = TextEditingController();
   final _formKey = GlobalKey<FormState>();
+  bool _isLoading = false;
 
   @override
   void dispose() {
+    _parentNameController.dispose();
     _emailController.dispose();
-    _passwordController.dispose();
     super.dispose();
   }
-void _signIn() async {
-  if (!_formKey.currentState!.validate()) {
-    return;
+
+  Future<void> _parentLogin() async {
+    if (!_formKey.currentState!.validate()) {
+      return;
+    }
+
+    setState(() {
+      _isLoading = true;
+    });
+
+    try {
+      final response = await http.post(
+        Uri.parse(
+            'https://lightyellow-owl-629132.hostingersite.com/api/parent-login'),
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+        },
+        body: json.encode({
+          'ParentName': _parentNameController.text.trim(),
+          'Email': _emailController.text.trim(),
+        }),
+      );
+
+      final responseData = json.decode(response.body);
+
+      if (response.statusCode == 200) {
+        Fluttertoast.showToast(
+          msg: "Login successful!",
+          toastLength: Toast.LENGTH_SHORT,
+          gravity: ToastGravity.BOTTOM,
+        );
+        Navigator.pushReplacementNamed(context, '/track');
+      } else {
+        throw Exception(responseData['message'] ?? 'Login failed');
+      }
+    } catch (e) {
+      Fluttertoast.showToast(
+        msg: "Login failed: ${e.toString().replaceAll('Exception: ', '')}",
+        toastLength: Toast.LENGTH_LONG,
+        gravity: ToastGravity.BOTTOM,
+      );
+    } finally {
+      setState(() {
+        _isLoading = false;
+      });
+    }
   }
 
-  try {
-    final authProvider = Provider.of<AuthProvider>(context, listen: false);
-
-    await authProvider.login(
-      _emailController.text.trim(),
-      _passwordController.text,
-    );
-
-    Fluttertoast.showToast(
-      msg: "Login successful!",
-      toastLength: Toast.LENGTH_SHORT,
-      gravity: ToastGravity.BOTTOM,
-    );
-
-    // Optional: Navigate to the next screen
-     Navigator.pushReplacementNamed(context, '/track');
-
-  } catch (e) {
-    Fluttertoast.showToast(
-      msg: "Login failed: ${e.toString().replaceAll('Exception: ', '')}",
-      toastLength: Toast.LENGTH_LONG,
-      gravity: ToastGravity.BOTTOM,
-    );
-  }
-}
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -118,7 +138,28 @@ void _signIn() async {
                       ),
                       const SizedBox(height: 24),
                       const Text(
-                        'Username',
+                        'Parent Name',
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      TextFormField(
+                        controller: _parentNameController,
+                        decoration: const InputDecoration(
+                          hintText: 'Enter your parent name',
+                        ),
+                        validator: (value) {
+                          if (value == null || value.isEmpty) {
+                            return 'Please enter your parent name';
+                          }
+                          return null;
+                        },
+                      ),
+                      const SizedBox(height: 16),
+                      const Text(
+                        'Email',
                         style: TextStyle(
                           fontSize: 16,
                           fontWeight: FontWeight.w500,
@@ -129,33 +170,15 @@ void _signIn() async {
                         controller: _emailController,
                         keyboardType: TextInputType.emailAddress,
                         decoration: const InputDecoration(
-                          hintText: 'Enter your username',
+                          hintText: 'Enter your registered email',
                         ),
                         validator: (value) {
                           if (value == null || value.isEmpty) {
-                            return 'Please enter your username';
+                            return 'Please enter your email';
                           }
-                          return null;
-                        },
-                      ),
-                      const SizedBox(height: 16),
-                      const Text(
-                        'Password',
-                        style: TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.w500,
-                        ),
-                      ),
-                      const SizedBox(height: 8),
-                      TextFormField(
-                        controller: _passwordController,
-                        obscureText: true,
-                        decoration: const InputDecoration(
-                          hintText: 'Enter your password',
-                        ),
-                        validator: (value) {
-                          if (value == null || value.isEmpty) {
-                            return 'Please enter your password';
+                          if (!RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$')
+                              .hasMatch(value)) {
+                            return 'Please enter a valid email';
                           }
                           return null;
                         },
@@ -164,8 +187,12 @@ void _signIn() async {
                       SizedBox(
                         width: double.infinity,
                         child: ElevatedButton(
-                          onPressed: _signIn,
-                          child: const Text('Login'),
+                          onPressed: _isLoading ? null : _parentLogin,
+                          child: _isLoading
+                              ? const CircularProgressIndicator(
+                                  color: Colors.white,
+                                )
+                              : const Text('Login'),
                         ),
                       ),
                     ],
@@ -197,19 +224,12 @@ void _signIn() async {
                     ),
                     TextButton(
                       onPressed: () {
-                        // Try multiple navigation approaches to ensure one works
-                        try {
-                          // Approach 1: Using named route
-                          Navigator.pushNamed(context, '/signup');
-                        } catch (e) {
-                          // Approach 2: Using MaterialPageRoute directly
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => const SignupScreen(),
-                            ),
-                          );
-                        }
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => const SignupScreen(),
+                          ),
+                        );
                       },
                       child: Text(
                         'Sign Up',
