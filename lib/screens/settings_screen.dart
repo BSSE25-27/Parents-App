@@ -1,8 +1,67 @@
 import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
+import 'dart:convert';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:school_van_tracker/widgets/bottom_navigation.dart';
 
-class SettingsScreen extends StatelessWidget {
+class SettingsScreen extends StatefulWidget {
   const SettingsScreen({super.key});
+
+  @override
+  State<SettingsScreen> createState() => _SettingsScreenState();
+}
+
+class _SettingsScreenState extends State<SettingsScreen> {
+  Map<String, dynamic>? parentProfile;
+  bool isLoading = true;
+  String errorMessage = '';
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchParentProfile();
+  }
+
+  Future<void> _fetchParentProfile() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final apiKey = prefs.getString('api_key');
+
+      if (apiKey == null) {
+        throw Exception('Not logged in');
+      }
+
+      final response = await http.get(
+        Uri.parse(
+            'https://lightyellow-owl-629132.hostingersite.com/api/parent-profile'),
+        headers: {
+          'X-API-KEY': apiKey,
+          'Accept': 'application/json',
+        },
+      );
+
+      if (response.statusCode == 200) {
+        setState(() {
+          parentProfile = json.decode(response.body);
+          isLoading = false;
+        });
+      } else {
+        throw Exception('Failed to load profile: ${response.statusCode}');
+      }
+    } catch (e) {
+      setState(() {
+        errorMessage = e.toString();
+        isLoading = false;
+      });
+    }
+  }
+
+  Future<void> _logout() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.remove('api_key');
+    if (!mounted) return;
+    Navigator.pushReplacementNamed(context, '/login');
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -42,75 +101,106 @@ class SettingsScreen extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 20),
-            const Text(
-              'Profile',
-              style: TextStyle(
-                fontSize: 22,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-            const SizedBox(height: 16),
-            const Text(
-              'Child (children) Name',
-              style: TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.w500,
-                color: Colors.grey,
-              ),
-            ),
-            const SizedBox(height: 8),
-            buildInfoCard('Annie Mali'),
-            buildInfoCard('Chris Tomlin'),
-            const SizedBox(height: 16),
-            const Text(
-              'Parents /Guardian Names',
-              style: TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.w500,
-                color: Colors.grey,
-              ),
-            ),
-            const SizedBox(height: 8),
-            buildInfoCard('Kate Winslet Aninton'),
-            buildInfoCard('Dwayne Johnson'),
-            const SizedBox(height: 16),
-            const Text(
-              'Phone Number',
-              style: TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.w500,
-                color: Colors.grey,
-              ),
-            ),
-            const SizedBox(height: 8),
-            buildInfoCard('0771278951'),
-            const SizedBox(height: 24),
-            SizedBox(
-              width: double.infinity,
-              child: ElevatedButton(
-                onPressed: () {
-                  // Edit profile
-                },
-                child: const Text('Edit Profile'),
-              ),
-            ),
-            const SizedBox(height: 16),
-            SizedBox(
-              width: double.infinity,
-              child: ElevatedButton(
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.red.shade700,
-                ),
-                onPressed: () {
-                  Navigator.pushReplacementNamed(context, '/login');
-                },
-                child: const Text('Log Out'),
-              ),
-            ),
+            if (isLoading)
+              const Center(child: CircularProgressIndicator())
+            else if (errorMessage.isNotEmpty)
+              Center(child: Text(errorMessage))
+            else if (parentProfile != null)
+              _buildProfileContent()
+            else
+              const Center(child: Text('No profile data available')),
           ],
         ),
       ),
       bottomNavigationBar: const BottomNavigation(currentIndex: 2),
+    );
+  }
+
+  Widget _buildProfileContent() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Text(
+          'Profile',
+          style: TextStyle(
+            fontSize: 22,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+        const SizedBox(height: 16),
+
+        // Children Names
+        const Text(
+          'Child (children) Name',
+          style: TextStyle(
+            fontSize: 16,
+            fontWeight: FontWeight.w500,
+            color: Colors.grey,
+          ),
+        ),
+        const SizedBox(height: 8),
+        if (parentProfile!['children'] != null &&
+            parentProfile!['children'].isNotEmpty)
+          ...parentProfile!['children']
+              .map<Widget>((child) => buildInfoCard(child['ChildName']))
+              .toList()
+        else
+          buildInfoCard('No children registered'),
+
+        const SizedBox(height: 16),
+
+        // Parent/Guardian Names
+        const Text(
+          'Parents /Guardian Names',
+          style: TextStyle(
+            fontSize: 16,
+            fontWeight: FontWeight.w500,
+            color: Colors.grey,
+          ),
+        ),
+        const SizedBox(height: 8),
+        buildInfoCard(parentProfile!['parent_name'] ?? 'Not available'),
+
+        const SizedBox(height: 16),
+
+        // Phone Number
+        const Text(
+          'Phone Number',
+          style: TextStyle(
+            fontSize: 16,
+            fontWeight: FontWeight.w500,
+            color: Colors.grey,
+          ),
+        ),
+        const SizedBox(height: 8),
+        buildInfoCard(parentProfile!['phone_number'] ?? 'Not available'),
+
+        const SizedBox(height: 24),
+
+        // Edit Profile Button
+        SizedBox(
+          width: double.infinity,
+          child: ElevatedButton(
+            onPressed: () {
+              // Navigate to edit profile screen
+            },
+            child: const Text('Edit Profile'),
+          ),
+        ),
+        const SizedBox(height: 16),
+
+        // Log Out Button
+        SizedBox(
+          width: double.infinity,
+          child: ElevatedButton(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.red.shade700,
+            ),
+            onPressed: _logout,
+            child: const Text('Log Out'),
+          ),
+        ),
+      ],
     );
   }
 

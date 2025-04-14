@@ -4,6 +4,7 @@ import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:school_van_tracker/widgets/bottom_navigation.dart';
 import 'package:school_van_tracker/screens/signup_screen.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -43,22 +44,32 @@ class _LoginScreenState extends State<LoginScreen> {
           'Accept': 'application/json',
         },
         body: json.encode({
-          'ParentName': _parentNameController.text.trim(),
           'Email': _emailController.text.trim(),
+          'ParentName': _parentNameController.text.trim(),
         }),
       );
 
       final responseData = json.decode(response.body);
 
       if (response.statusCode == 200) {
+        // Store the API key securely (using shared_preferences or flutter_secure_storage)
+        final apiKey = responseData['api_key'];
+        final parentData = responseData['parent'];
+
+        // Example using shared_preferences:
+        final prefs = await SharedPreferences.getInstance();
+        await prefs.setString('api_key', apiKey);
+        await prefs.setString('parent_id', parentData['ParentID'].toString());
+
         Fluttertoast.showToast(
           msg: "Login successful!",
           toastLength: Toast.LENGTH_SHORT,
           gravity: ToastGravity.BOTTOM,
         );
+
         Navigator.pushReplacementNamed(context, '/track');
       } else {
-        throw Exception(responseData['message'] ?? 'Login failed');
+        throw Exception(responseData['error'] ?? 'Login failed');
       }
     } catch (e) {
       Fluttertoast.showToast(
@@ -216,7 +227,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     const Text(
-                      'Don\'t have an account ',
+                      'Don\'t have an account?',
                       style: TextStyle(
                         color: Colors.black87,
                         fontSize: 16,

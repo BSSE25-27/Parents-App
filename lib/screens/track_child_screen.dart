@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:school_van_tracker/widgets/bottom_navigation.dart';
 
 class TrackChildScreen extends StatefulWidget {
@@ -11,8 +12,25 @@ class TrackChildScreen extends StatefulWidget {
 
 class _TrackChildScreenState extends State<TrackChildScreen> {
   late GoogleMapController _mapController;
-  static const LatLng _initialLocation = LatLng(0.3476, 32.5825); // Kampala default
+  static const LatLng _initialLocation =
+      LatLng(0.3476, 32.5825); // Kampala default
   LatLng _childLocation = _initialLocation;
+  String parentName = 'Loading...';
+  String parentEmail = 'loading...';
+
+  @override
+  void initState() {
+    super.initState();
+    _loadParentData();
+  }
+
+  Future<void> _loadParentData() async {
+    final prefs = await SharedPreferences.getInstance();
+    setState(() {
+      parentName = prefs.getString('parent_name') ?? 'Parent Name';
+      parentEmail = prefs.getString('email') ?? 'email@example.com';
+    });
+  }
 
   void _onMapCreated(GoogleMapController controller) {
     _mapController = controller;
@@ -64,7 +82,8 @@ class _TrackChildScreenState extends State<TrackChildScreen> {
               Marker(
                 markerId: const MarkerId('child'),
                 position: _childLocation,
-                icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueAzure),
+                icon: BitmapDescriptor.defaultMarkerWithHue(
+                    BitmapDescriptor.hueAzure),
                 infoWindow: const InfoWindow(title: 'Child Location'),
               ),
             },
@@ -115,16 +134,24 @@ class _TrackChildScreenState extends State<TrackChildScreen> {
         children: [
           DrawerHeader(
             decoration: BoxDecoration(color: Theme.of(context).primaryColor),
-            child: const Column(
+            child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 CircleAvatar(
                   radius: 30,
-                  backgroundImage: NetworkImage('https://i.pravatar.cc/150?img=5'),
+                  backgroundImage: NetworkImage(
+                    'https://ui-avatars.com/api/?name=${Uri.encodeComponent(parentName)}&background=random',
+                  ),
                 ),
-                SizedBox(height: 10),
-                Text('Kate Winslet', style: TextStyle(color: Colors.white, fontSize: 18)),
-                Text('kate.winslet@gmail.com', style: TextStyle(color: Colors.white70, fontSize: 14)),
+                const SizedBox(height: 10),
+                Text(
+                  parentName,
+                  style: const TextStyle(color: Colors.white, fontSize: 18),
+                ),
+                Text(
+                  parentEmail,
+                  style: const TextStyle(color: Colors.white70, fontSize: 14),
+                ),
               ],
             ),
           ),
@@ -169,7 +196,12 @@ class _TrackChildScreenState extends State<TrackChildScreen> {
           ListTile(
             leading: const Icon(Icons.logout),
             title: const Text('Logout'),
-            onTap: () {
+            onTap: () async {
+              final prefs = await SharedPreferences.getInstance();
+              await prefs.remove('api_key');
+              await prefs.remove('parent_name');
+              await prefs.remove('email');
+              if (!mounted) return;
               Navigator.pop(context);
               Navigator.pushReplacementNamed(context, '/login');
             },
