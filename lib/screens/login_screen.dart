@@ -60,6 +60,11 @@ class _LoginScreenState extends State<LoginScreen> {
         final prefs = await SharedPreferences.getInstance();
         await prefs.setString('api_key', apiKey);
         await prefs.setString('parent_id', parentData['ParentID'].toString());
+        await prefs.setString(
+            'parent_name', responseData['parent']['ParentName']);
+        await prefs.setString('email', responseData['parent']['Email']);
+        await prefs.setString(
+            'phone_number', responseData['parent']['PhoneNumber'] ?? '');
 
         Fluttertoast.showToast(
           msg: "Login successful!",
