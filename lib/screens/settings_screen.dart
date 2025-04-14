@@ -15,11 +15,13 @@ class _SettingsScreenState extends State<SettingsScreen> {
   Map<String, dynamic>? parentProfile;
   bool isLoading = true;
   String errorMessage = '';
+  String parentName = 'Loading...';
 
   @override
   void initState() {
     super.initState();
     _fetchParentProfile();
+    _loadParentData();
   }
 
   Future<void> _fetchParentProfile() async {
@@ -63,16 +65,24 @@ class _SettingsScreenState extends State<SettingsScreen> {
     Navigator.pushReplacementNamed(context, '/login');
   }
 
+  Future<void> _loadParentData() async {
+    final prefs = await SharedPreferences.getInstance();
+    setState(() {
+      parentName = prefs.getString('parent_name') ?? 'Parent Name';
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
-        title: const Row(
+        title: Row(
           children: [
             CircleAvatar(
               radius: 16,
-              backgroundImage: NetworkImage('https://i.pravatar.cc/150?img=5'),
+              backgroundImage: NetworkImage(
+                  'https://ui-avatars.com/api/?name=${Uri.encodeComponent(parentName)}&background=random'),
             ),
             SizedBox(width: 8),
             Text('BTrack', style: TextStyle(color: Colors.white)),

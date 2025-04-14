@@ -1,35 +1,74 @@
 import 'package:flutter/material.dart';
 import 'package:school_van_tracker/widgets/bottom_navigation.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:http/http.dart' as http;
+import 'dart:convert';
 
-class MyChildrenScreen extends StatelessWidget {
+class MyChildrenScreen extends StatefulWidget {
   const MyChildrenScreen({super.key});
 
   @override
-  Widget build(BuildContext context) {
-    // Sample data for children
-    final List<Map<String, dynamic>> children = [
-      {
-        'name': 'Annie Mali',
-        'studentId': 'STU-2023-001',
-        'grade': 'Grade 3',
-        'age': '8 years',
-        'avatar': 'https://i.pravatar.cc/150?img=32',
-        'school': 'Greenfield Elementary School',
-        'pickupTime': '3:30 PM',
-        'dropTime': '4:15 PM',
-      },
-      {
-        'name': 'Chris Tomlin',
-        'studentId': 'STU-2023-002',
-        'grade': 'Grade 5',
-        'age': '10 years',
-        'avatar': 'https://i.pravatar.cc/150?img=12',
-        'school': 'Greenfield Elementary School',
-        'pickupTime': '3:30 PM',
-        'dropTime': '4:30 PM',
-      },
-    ];
+  State<MyChildrenScreen> createState() => _MyChildrenScreenState();
+}
 
+class _MyChildrenScreenState extends State<MyChildrenScreen> {
+  List<dynamic> children = [];
+  bool isLoading = true;
+  String errorMessage = '';
+  String parentName = 'Parent';
+
+  @override
+  void initState() {
+    super.initState();
+    _loadParentData();
+    _fetchChildren();
+  }
+
+  Future<void> _loadParentData() async {
+    final prefs = await SharedPreferences.getInstance();
+    setState(() {
+      parentName = prefs.getString('parent_name') ?? 'Parent';
+    });
+  }
+
+  Future<void> _fetchChildren() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final apiKey = prefs.getString('api_key');
+      final parentId = prefs.getString('parent_id');
+
+      if (apiKey == null || parentId == null) {
+        throw Exception('Not authenticated');
+      }
+
+      final response = await http.get(
+        Uri.parse(
+            'https://lightyellow-owl-629132.hostingersite.com/api/parent-children?ParentID=$parentId'),
+        headers: {
+          'X-API-KEY': apiKey,
+          'Accept': 'application/json',
+        },
+      );
+
+      if (response.statusCode == 200) {
+        final responseData = json.decode(response.body);
+        setState(() {
+          children = responseData['children'] ?? [];
+          isLoading = false;
+        });
+      } else {
+        throw Exception('Failed to load children data');
+      }
+    } catch (e) {
+      setState(() {
+        errorMessage = e.toString();
+        isLoading = false;
+      });
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
@@ -59,58 +98,22 @@ class MyChildrenScreen extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  const Text(
-                    'My Children',
-                    style: TextStyle(
-                      fontSize: 28,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                    decoration: BoxDecoration(
-                      color: Theme.of(context).primaryColor,
-                      borderRadius: BorderRadius.circular(20),
-                    ),
-                    child: Text(
-                      'Total: ${children.length}',
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                  ),
-                ],
+              Text(
+                '$parentName\'s Children',
+                style: const TextStyle(
+                  fontSize: 28,
+                  fontWeight: FontWeight.bold,
+                ),
               ),
               const SizedBox(height: 20),
-              
-              // Children list
-              ...children.map((child) => buildChildCard(context, child)).toList(),
-              
-              const SizedBox(height: 20),
-              
-              // Add child button
-            //   SizedBox(
-            //     width: double.infinity,
-            //     child: ElevatedButton.icon(
-            //       onPressed: () {
-            //         // Add child functionality would go here
-            //         ScaffoldMessenger.of(context).showSnackBar(
-            //           const SnackBar(
-            //             content: Text('Add child functionality coming soon!'),
-            //           ),
-            //         );
-            //       },
-            //       icon: const Icon(Icons.add),
-            //       label: const Text('Add Child'),
-            //       style: ElevatedButton.styleFrom(
-            //         padding: const EdgeInsets.symmetric(vertical: 12),
-            //       ),
-            //     ),
-            //   ),
+              if (isLoading)
+                const Center(child: CircularProgressIndicator())
+              else if (errorMessage.isNotEmpty)
+                Center(child: Text(errorMessage))
+              else if (children.isEmpty)
+                const Center(child: Text('No children registered'))
+              else
+                ...children.map((child) => _buildChildCard(child)).toList(),
             ],
           ),
         ),
@@ -118,40 +121,26 @@ class MyChildrenScreen extends StatelessWidget {
       bottomNavigationBar: const BottomNavigation(currentIndex: 0),
     );
   }
-  
-  Widget buildChildCard(BuildContext context, Map<String, dynamic> child) {
-    return Container(
+
+  Widget _buildChildCard(Map<String, dynamic> child) {
+    return Card(
       margin: const EdgeInsets.only(bottom: 16),
-      decoration: BoxDecoration(
-        color: Colors.white,
+      elevation: 2,
+      shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Colors.grey.shade200),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.grey.withOpacity(0.1),
-            spreadRadius: 1,
-            blurRadius: 4,
-            offset: const Offset(0, 2),
-          ),
-        ],
       ),
-      child: Column(
-        children: [
-          // Header with avatar and name
-          Container(
-            padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              color: Theme.of(context).primaryColor.withOpacity(0.1),
-              borderRadius: const BorderRadius.only(
-                topLeft: Radius.circular(12),
-                topRight: Radius.circular(12),
-              ),
-            ),
-            child: Row(
+      child: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
               children: [
                 CircleAvatar(
                   radius: 30,
-                  backgroundImage: NetworkImage(child['avatar']),
+                  backgroundImage: NetworkImage(
+                    'https://ui-avatars.com/api/?name=${Uri.encodeComponent(child['ChildName'])}&background=random',
+                  ),
                 ),
                 const SizedBox(width: 16),
                 Expanded(
@@ -159,111 +148,48 @@ class MyChildrenScreen extends StatelessWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        child['name'],
+                        child['ChildName'] ?? 'Child',
                         style: const TextStyle(
-                          fontSize: 20,
+                          fontSize: 18,
                           fontWeight: FontWeight.bold,
                         ),
                       ),
                       const SizedBox(height: 4),
                       Text(
-                        'Student ID: ${child['studentId']}',
+                        'ID: ${child['ChildID']}',
                         style: TextStyle(
                           fontSize: 14,
-                          color: Colors.grey.shade700,
+                          color: Colors.grey.shade600,
                         ),
                       ),
                     ],
                   ),
                 ),
-                // IconButton(
-                //   icon: const Icon(Icons.edit_outlined),
-                //   onPressed: () {
-                //     // Edit child functionality would go here
-                //   },
-                // ),
               ],
             ),
-          ),
-          
-          // Child details
-          Padding(
-            padding: const EdgeInsets.all(16),
-            child: Column(
-              children: [
-                buildInfoRow(context, 'Grade', child['grade']),
-                const SizedBox(height: 8),
-                buildInfoRow(context, 'Age', child['age']),
-                const SizedBox(height: 8),
-                buildInfoRow(context, 'School', child['school']),
-                const SizedBox(height: 8),
-                Row(
-                  children: [
-                    Expanded(
-                      child: buildInfoRow(context, 'Pickup', child['pickupTime']),
-                    ),
-                    Expanded(
-                      child: buildInfoRow(context, 'Drop-off', child['dropTime']),
-                    ),
-                  ],
+            const SizedBox(height: 16),
+            SizedBox(
+              width: double.infinity,
+              child: ElevatedButton(
+                onPressed: () {
+                  Navigator.pushNamed(
+                    context,
+                    '/track',
+                    arguments: {'childId': child['ChildID']},
+                  );
+                },
+                style: ElevatedButton.styleFrom(
+                  padding: const EdgeInsets.symmetric(vertical: 12),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(8),
+                  ),
                 ),
-                const SizedBox(height: 16),
-                Row(
-                  children: [
-                    Expanded(
-                      child: OutlinedButton.icon(
-                        onPressed: () {
-                          Navigator.pushNamed(context, '/track');
-                        },
-                        icon: const Icon(Icons.location_on),
-                        label: const Text('Track'),
-                        style: OutlinedButton.styleFrom(
-                          padding: const EdgeInsets.symmetric(vertical: 12),
-                        ),
-                      ),
-                    ),
-                    // const SizedBox(width: 12),
-                    // Expanded(
-                    //   child: ElevatedButton.icon(
-                    //     onPressed: () {
-                    //       // Call driver functionality would go here
-                    //     },
-                    //     icon: const Icon(Icons.phone),
-                    //     label: const Text('Call Driver'),
-                    //     style: ElevatedButton.styleFrom(
-                    //       padding: const EdgeInsets.symmetric(vertical: 12),
-                    //     ),
-                    //   ),
-                    // ),
-                  ],
-                ),
-              ],
+                child: const Text('Track Location'),
+              ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
-    );
-  }
-  
-  Widget buildInfoRow(BuildContext context, String label, String value) {
-    return Row(
-      children: [
-        Text(
-          '$label: ',
-          style: const TextStyle(
-            fontSize: 14,
-            fontWeight: FontWeight.w500,
-            color: Colors.grey,
-          ),
-        ),
-        Text(
-          value,
-          style: const TextStyle(
-            fontSize: 14,
-            fontWeight: FontWeight.w500,
-          ),
-        ),
-      ],
     );
   }
 }
