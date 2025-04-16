@@ -3,7 +3,6 @@ import 'package:fluttertoast/fluttertoast.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:school_van_tracker/widgets/bottom_navigation.dart';
-import 'package:school_van_tracker/screens/signup_screen.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class LoginScreen extends StatefulWidget {
@@ -18,6 +17,20 @@ class _LoginScreenState extends State<LoginScreen> {
   final _emailController = TextEditingController();
   final _formKey = GlobalKey<FormState>();
   bool _isLoading = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadSavedParentName();
+  }
+
+  Future<void> _loadSavedParentName() async {
+    final prefs = await SharedPreferences.getInstance();
+    final savedName = prefs.getString('saved_parent_name') ?? '';
+    setState(() {
+      _parentNameController.text = savedName;
+    });
+  }
 
   @override
   void dispose() {
@@ -52,11 +65,9 @@ class _LoginScreenState extends State<LoginScreen> {
       final responseData = json.decode(response.body);
 
       if (response.statusCode == 200) {
-        // Store the API key securely (using shared_preferences or flutter_secure_storage)
         final apiKey = responseData['api_key'];
         final parentData = responseData['parent'];
 
-        // Example using shared_preferences:
         final prefs = await SharedPreferences.getInstance();
         await prefs.setString('api_key', apiKey);
         await prefs.setString('parent_id', parentData['ParentID'].toString());
@@ -65,6 +76,10 @@ class _LoginScreenState extends State<LoginScreen> {
         await prefs.setString('email', responseData['parent']['Email']);
         await prefs.setString(
             'phone_number', responseData['parent']['PhoneNumber'] ?? '');
+
+        // Save only parent name for future autofill
+        await prefs.setString(
+            'saved_parent_name', _parentNameController.text.trim());
 
         Fluttertoast.showToast(
           msg: "Login successful!",
@@ -94,6 +109,7 @@ class _LoginScreenState extends State<LoginScreen> {
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
+        automaticallyImplyLeading: false,
         title: const Row(
           children: [
             Icon(Icons.smart_toy, color: Colors.white),
@@ -214,56 +230,11 @@ class _LoginScreenState extends State<LoginScreen> {
                     ],
                   ),
                 ),
-                const SizedBox(height: 16),
-                TextButton(
-                  onPressed: () {
-                    Navigator.pushNamed(context, '/forgot-password');
-                  },
-                  child: Text(
-                    'Forgot password?',
-                    style: TextStyle(
-                      color: Theme.of(context).primaryColor,
-                      fontSize: 16,
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 8),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    const Text(
-                      'Don\'t have an account?',
-                      style: TextStyle(
-                        color: Colors.black87,
-                        fontSize: 16,
-                      ),
-                    ),
-                    TextButton(
-                      onPressed: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => const SignupScreen(),
-                          ),
-                        );
-                      },
-                      child: Text(
-                        'Sign Up',
-                        style: TextStyle(
-                          color: Theme.of(context).primaryColor,
-                          fontSize: 16,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
               ],
             ),
           ),
         ),
       ),
-      bottomNavigationBar: const BottomNavigation(currentIndex: 0),
     );
   }
 }

@@ -87,7 +87,6 @@ class WelcomeScreen extends StatelessWidget {
           ),
         ),
       ),
-      bottomNavigationBar: const BottomNavigation(currentIndex: 0),
     );
   }
 }

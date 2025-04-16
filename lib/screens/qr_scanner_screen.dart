@@ -46,10 +46,10 @@ Child Class: Primary 4
               onPressed: () {
                 setState(() {
                   qrData = """
-                    Parent Name: Kate Winslet
-                    Parent Contact: +256771278951
+                    Parent Name: Shiphra Ahwera
+                    Parent Contact: 0770699061
                     Child ID: CHD67890
-                    Child Name: Chris Tomlin
+                    Child Name: Blesing Nag
                     Child Class: Primary 3
                     """; // Example of dynamically changing the QR code data
                 });

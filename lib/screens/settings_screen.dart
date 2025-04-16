@@ -84,8 +84,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
               backgroundImage: NetworkImage(
                   'https://ui-avatars.com/api/?name=${Uri.encodeComponent(parentName)}&background=random'),
             ),
-            SizedBox(width: 8),
-            Text('BTrack', style: TextStyle(color: Colors.white)),
+            const SizedBox(width: 8),
+            const Text('BTrack', style: TextStyle(color: Colors.white)),
           ],
         ),
         actions: [
@@ -130,14 +130,23 @@ class _SettingsScreenState extends State<SettingsScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text(
-          'Profile',
-          style: TextStyle(
-            fontSize: 22,
-            fontWeight: FontWeight.bold,
+        // Profile header with background
+        Container(
+          width: double.infinity,
+          padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
+          margin: const EdgeInsets.only(bottom: 16),
+          decoration: BoxDecoration(
+            color: Colors.grey.shade100,
+            borderRadius: BorderRadius.circular(8),
+          ),
+          child: const Text(
+            'Profile',
+            style: TextStyle(
+              fontSize: 22,
+              fontWeight: FontWeight.bold,
+            ),
           ),
         ),
-        const SizedBox(height: 16),
 
         // Children Names
         const Text(
@@ -186,18 +195,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
         buildInfoCard(parentProfile!['phone_number'] ?? 'Not available'),
 
         const SizedBox(height: 24),
-
-        // Edit Profile Button
-        SizedBox(
-          width: double.infinity,
-          child: ElevatedButton(
-            onPressed: () {
-              // Navigate to edit profile screen
-            },
-            child: const Text('Edit Profile'),
-          ),
-        ),
-        const SizedBox(height: 16),
 
         // Log Out Button
         SizedBox(
