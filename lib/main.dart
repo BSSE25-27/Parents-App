@@ -66,7 +66,7 @@ class MyApp extends StatelessWidget {
               '/signup': (context) => const SignupScreen(),
               '/track': (context) => const TrackChildScreen(),
               '/settings': (context) => const SettingsScreen(),
-              '/qr_scanner': (context) => const QRScannerScreen(),
+              '/qr_scanner': (context) => const QRGeneratorScreen(),
               '/notifications': (context) => const NotificationsScreen(),
               '/forgot-password': (context) => const ForgotPasswordScreen(),
               '/journey-history': (context) => const JourneyHistoryScreen(),
