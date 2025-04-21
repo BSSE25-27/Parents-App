@@ -58,7 +58,7 @@ class MyApp extends StatelessWidget {
             theme: AppTheme.lightTheme,
             darkTheme: AppTheme.darkTheme,
             themeMode: themeProvider.themeMode,
-            initialRoute: '/welcome', // <-- Set to WelcomeScreen
+            initialRoute: '/splash', // <-- Set to WelcomeScreen
             routes: {
               '/splash': (context) => const SplashScreen(),
               '/welcome': (context) => const WelcomeScreen(),

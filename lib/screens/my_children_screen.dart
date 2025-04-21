@@ -113,7 +113,7 @@ class _MyChildrenScreenState extends State<MyChildrenScreen> {
               else if (children.isEmpty)
                 const Center(child: Text('No children registered'))
               else
-                ...children.map((child) => _buildChildCard(child)).toList(),
+                ...children.map((child) => _buildChildCard(child)),
             ],
           ),
         ),

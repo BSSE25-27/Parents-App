@@ -1,41 +1,38 @@
-import 'dart:convert';
-import 'package:flutter/material.dart';
 // import 'package:flutter_local_notifications/flutter_local_notifications.dart';
-import 'package:http/http.dart' as http;
 // import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:school_van_tracker/models/notification.dart';
- 
+
 class NotificationService {
   // final String? baseUrl = dotenv.env['API_URL'];
   // final FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin = FlutterLocalNotificationsPlugin();
- 
+
   // static final NotificationService _instance = NotificationService._internal();
- 
+
   // factory NotificationService() {
   //   return _instance;
   // }
- 
+
   // NotificationService._internal();
- 
+
   // Future<void> init() async {
   //   const AndroidInitializationSettings initializationSettingsAndroid = AndroidInitializationSettings('@mipmap/ic_launcher');
-   
+
   //   const DarwinInitializationSettings initializationSettingsIOS = DarwinInitializationSettings(
   //     requestAlertPermission: true,
   //     requestBadgePermission: true,
   //     requestSoundPermission: true,
   //   );
-   
+
   //   const InitializationSettings initializationSettings = InitializationSettings(
   //     android: initializationSettingsAndroid,
   //     iOS: initializationSettingsIOS,
   //   );
-   
+
   //   await flutterLocalNotificationsPlugin.initialize(
   //     initializationSettings,
   //   );
   // }
- 
+
   // Future<void> showNotification({
   //   required String title,
   //   required String body,
@@ -49,18 +46,18 @@ class NotificationService {
   //     priority: Priority.high,
   //     showWhen: true,
   //   );
-   
+
   //   const DarwinNotificationDetails iOSPlatformChannelSpecifics = DarwinNotificationDetails(
   //     presentAlert: true,
   //     presentBadge: true,
   //     presentSound: true,
   //   );
-   
+
   //   const NotificationDetails platformChannelSpecifics = NotificationDetails(
   //     android: androidPlatformChannelSpecifics,
   //     iOS: iOSPlatformChannelSpecifics,
   //   );
-   
+
   //   await flutterLocalNotificationsPlugin.show(
   //     0,
   //     title,
@@ -69,12 +66,12 @@ class NotificationService {
   //     payload: payload,
   //   );
   // }
- 
+
   Future<List<AppNotification>> getNotifications(String token) async {
     // In a real app, this would make an API call
     // For demo purposes, we'll return mock data
     await Future.delayed(const Duration(seconds: 1));
-   
+
     final now = DateTime.now();
     return [
       AppNotification(
@@ -88,7 +85,8 @@ class NotificationService {
       AppNotification(
         id: '2',
         title: 'Journey Started',
-        message: 'Annie Mali has boarded the van. The journey to home has started.',
+        message:
+            'Annie Mali has boarded the van. The journey to home has started.',
         timestamp: now.subtract(const Duration(hours: 2)),
         isRead: true,
         type: NotificationType.journey,
@@ -112,7 +110,8 @@ class NotificationService {
       AppNotification(
         id: '5',
         title: 'Route Change',
-        message: 'The van route has been slightly modified due to road construction.',
+        message:
+            'The van route has been slightly modified due to road construction.',
         timestamp: now.subtract(const Duration(days: 1, hours: 5)),
         isRead: true,
         type: NotificationType.route,
@@ -127,16 +126,14 @@ class NotificationService {
       ),
     ];
   }
- 
+
   Future<void> markAsRead(String notificationId, String token) async {
     // In a real app, this would make an API call
     await Future.delayed(const Duration(milliseconds: 300));
   }
- 
+
   Future<void> markAllAsRead(String token) async {
     // In a real app, this would make an API call
     await Future.delayed(const Duration(seconds: 1));
   }
 }
- 
- 

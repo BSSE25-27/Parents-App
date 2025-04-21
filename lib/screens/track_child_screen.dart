@@ -14,7 +14,7 @@ class _TrackChildScreenState extends State<TrackChildScreen> {
   late GoogleMapController _mapController;
   static const LatLng _initialLocation =
       LatLng(0.3476, 32.5825); // Kampala default
-  LatLng _childLocation = _initialLocation;
+  final LatLng _childLocation = _initialLocation;
   String parentName = 'Loading...';
   String parentEmail = 'loading...';
 

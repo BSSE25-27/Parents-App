@@ -22,17 +22,18 @@ class MapWidget extends StatefulWidget {
 class _MapWidgetState extends State<MapWidget> {
   late GoogleMapController _mapController;
   late BitmapDescriptor _markerIcon;
-  
+
   final Set<Marker> _markers = {};
-  
+
   @override
   void initState() {
     super.initState();
     _setCustomMarker();
   }
-  
+
   Future<void> _setCustomMarker() async {
-    _markerIcon = await BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueViolet);
+    _markerIcon =
+        BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueViolet);
     setState(() {
       _markers.add(
         Marker(
@@ -69,4 +70,3 @@ class _MapWidgetState extends State<MapWidget> {
     );
   }
 }
-

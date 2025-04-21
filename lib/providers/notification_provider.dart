@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:school_van_tracker/models/notification.dart';
-import 'package:school_van_tracker/services/notification_service.dart';
 
 class NotificationProvider with ChangeNotifier {
   List<AppNotification> _notifications = [];
@@ -19,7 +18,7 @@ class NotificationProvider with ChangeNotifier {
       // In a real app, this would make an API call
       // For demo purposes, we'll use mock data
       await Future.delayed(const Duration(seconds: 1));
-      
+
       final now = DateTime.now();
       _notifications = [
         AppNotification(
@@ -33,7 +32,8 @@ class NotificationProvider with ChangeNotifier {
         AppNotification(
           id: '2',
           title: 'Journey Started',
-          message: 'Annie Mali has boarded the van. The journey to home has started.',
+          message:
+              'Annie Mali has boarded the van. The journey to home has started.',
           timestamp: now.subtract(const Duration(hours: 2)),
           isRead: true,
           type: NotificationType.journey,
@@ -57,7 +57,8 @@ class NotificationProvider with ChangeNotifier {
         AppNotification(
           id: '5',
           title: 'Route Change',
-          message: 'The van route has been slightly modified due to road construction.',
+          message:
+              'The van route has been slightly modified due to road construction.',
           timestamp: now.subtract(const Duration(days: 1, hours: 5)),
           isRead: true,
           type: NotificationType.route,
@@ -71,7 +72,7 @@ class NotificationProvider with ChangeNotifier {
           type: NotificationType.driver,
         ),
       ];
-      
+
       _updateUnreadCount();
     } catch (e) {
       rethrow;
@@ -89,7 +90,7 @@ class NotificationProvider with ChangeNotifier {
         if (!notification.isRead) {
           // In a real app, this would make an API call
           await Future.delayed(const Duration(milliseconds: 300));
-          
+
           final updatedNotification = AppNotification(
             id: notification.id,
             title: notification.title,
@@ -99,7 +100,7 @@ class NotificationProvider with ChangeNotifier {
             type: notification.type,
             relatedId: notification.relatedId,
           );
-          
+
           _notifications[index] = updatedNotification;
           _updateUnreadCount();
           notifyListeners();
@@ -117,7 +118,7 @@ class NotificationProvider with ChangeNotifier {
     try {
       // In a real app, this would make an API call
       await Future.delayed(const Duration(seconds: 1));
-      
+
       _notifications = _notifications.map((notification) {
         return AppNotification(
           id: notification.id,
@@ -129,7 +130,7 @@ class NotificationProvider with ChangeNotifier {
           relatedId: notification.relatedId,
         );
       }).toList();
-      
+
       _updateUnreadCount();
     } catch (e) {
       rethrow;
@@ -143,4 +144,3 @@ class NotificationProvider with ChangeNotifier {
     _unreadCount = _notifications.where((n) => !n.isRead).length;
   }
 }
-

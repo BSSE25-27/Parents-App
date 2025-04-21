@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:school_van_tracker/widgets/bottom_navigation.dart';
 
 class WelcomeScreen extends StatelessWidget {
   const WelcomeScreen({super.key});

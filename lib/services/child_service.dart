@@ -1,5 +1,3 @@
-import 'dart:convert';
-import 'package:http/http.dart' as http;
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:school_van_tracker/models/child.dart';
 import 'package:school_van_tracker/models/journey.dart';
@@ -11,7 +9,7 @@ class ChildService {
     // In a real app, this would make an API call
     // For demo purposes, we'll return mock data
     await Future.delayed(const Duration(seconds: 1));
-    
+
     return [
       Child(
         id: 'child1',
@@ -40,7 +38,7 @@ class ChildService {
     // In a real app, this would make an API call
     // For demo purposes, we'll return mock data
     await Future.delayed(const Duration(seconds: 1));
-    
+
     return Journey(
       id: 'journey1',
       childId: childId,
@@ -60,7 +58,7 @@ class ChildService {
     // In a real app, this would make an API call
     // For demo purposes, we'll return mock data
     await Future.delayed(const Duration(seconds: 1));
-    
+
     final now = DateTime.now();
     return List.generate(10, (index) {
       final isToSchool = index % 2 == 0;
@@ -69,14 +67,16 @@ class ChildService {
         childId: childId,
         vanId: 'van1',
         driverId: 'driver1',
-        startTime: now.subtract(Duration(days: index, hours: isToSchool ? 8 : 15)),
-        endTime: now.subtract(Duration(days: index, hours: isToSchool ? 7 : 14, minutes: 35)),
+        startTime:
+            now.subtract(Duration(days: index, hours: isToSchool ? 8 : 15)),
+        endTime: now.subtract(
+            Duration(days: index, hours: isToSchool ? 7 : 14, minutes: 35)),
         status: JourneyStatus.completed,
         startLocation: isToSchool ? 'Home' : 'School',
         endLocation: isToSchool ? 'School' : 'Home',
-        lastUpdated: now.subtract(Duration(days: index, hours: isToSchool ? 7 : 14, minutes: 35)),
+        lastUpdated: now.subtract(
+            Duration(days: index, hours: isToSchool ? 7 : 14, minutes: 35)),
       );
     });
   }
 }
-
