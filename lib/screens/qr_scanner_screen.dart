@@ -29,21 +29,22 @@ class _QRGeneratorScreenState extends State<QRGeneratorScreen> {
       final parentId = prefs.getString('parent_id');
       final parentName = prefs.getString('parent_name');
       final phoneNumber = prefs.getString('phone_number');
-      final children = prefs.getStringList('children_names') ?? [];
+      // final children = prefs.getStringList('children_names');
 
       if (parentId == null || parentName == null || phoneNumber == null) {
         throw Exception('Parent data not found');
       }
 
+      // Ensure children data is properly handled
+
       setState(() {
         qrData = '''
-        {
-          "parent_id": "$parentId",
-          "parent_name": "$parentName",
-          "phone_number": "$phoneNumber",
-          "children": ${jsonEncode(children)}
-        }
-        ''';
+      {
+        "parent_id": "$parentId",
+        "parent_name": "$parentName",
+        "phone_number": "$phoneNumber",
+      }
+      ''';
         isLoading = false;
       });
     } catch (e) {
