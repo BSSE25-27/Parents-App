@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
+import 'config.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:school_van_tracker/widgets/bottom_navigation.dart';
 
@@ -34,8 +35,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
       }
 
       final response = await http.get(
-        Uri.parse(
-            'https://lightyellow-owl-629132.hostingersite.com/api/parent-profile'),
+        Uri.parse('$serverUrl/api/parent-profile'),
         headers: {
           'X-API-KEY': apiKey,
           'Accept': 'application/json',

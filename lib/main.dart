@@ -17,7 +17,6 @@ import 'package:school_van_tracker/screens/splash_screen.dart';
 import 'package:school_van_tracker/screens/forgot_password_screen.dart';
 import 'package:school_van_tracker/screens/journey_history_screen.dart';
 import 'package:school_van_tracker/screens/my_children_screen.dart';
-import 'package:school_van_tracker/services/notification_service.dart';
 import 'package:school_van_tracker/utils/app_theme.dart';
 
 void main() async {

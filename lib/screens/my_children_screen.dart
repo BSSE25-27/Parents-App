@@ -3,6 +3,7 @@ import 'package:school_van_tracker/widgets/bottom_navigation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
+import 'config.dart';
 
 class MyChildrenScreen extends StatefulWidget {
   const MyChildrenScreen({super.key});
@@ -42,8 +43,7 @@ class _MyChildrenScreenState extends State<MyChildrenScreen> {
       }
 
       final response = await http.get(
-        Uri.parse(
-            'https://lightyellow-owl-629132.hostingersite.com/api/parent-children?ParentID=$parentId'),
+        Uri.parse('$serverUrl/api/parent-children?ParentID=$parentId'),
         headers: {
           'X-API-KEY': apiKey,
           'Accept': 'application/json',
@@ -64,6 +64,22 @@ class _MyChildrenScreenState extends State<MyChildrenScreen> {
         errorMessage = e.toString();
         isLoading = false;
       });
+    }
+  }
+
+  Future<void> trackChildLocation(int childID) async {
+    try {
+      print(childID);
+      final prefs = await SharedPreferences.getInstance();
+
+      prefs.setInt('ChildID', childID);
+      Navigator.pushNamed(
+        context,
+        '/track',
+        arguments: {'childId': childID},
+      );
+    } catch (e) {
+      print(e);
     }
   }
 
@@ -172,11 +188,7 @@ class _MyChildrenScreenState extends State<MyChildrenScreen> {
               width: double.infinity,
               child: ElevatedButton(
                 onPressed: () {
-                  Navigator.pushNamed(
-                    context,
-                    '/track',
-                    arguments: {'childId': child['ChildID']},
-                  );
+                  trackChildLocation(child['ChildID']);
                 },
                 style: ElevatedButton.styleFrom(
                   padding: const EdgeInsets.symmetric(vertical: 12),

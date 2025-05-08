@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
+import 'config.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class LoginScreen extends StatefulWidget {
@@ -49,8 +50,7 @@ class _LoginScreenState extends State<LoginScreen> {
 
     try {
       final response = await http.post(
-        Uri.parse(
-            'https://lightyellow-owl-629132.hostingersite.com/api/parent-login'),
+        Uri.parse('$serverUrl/api/parent-login'),
         headers: {
           'Content-Type': 'application/json',
           'Accept': 'application/json',
@@ -86,7 +86,7 @@ class _LoginScreenState extends State<LoginScreen> {
           gravity: ToastGravity.BOTTOM,
         );
 
-        Navigator.pushReplacementNamed(context, '/track');
+        Navigator.pushReplacementNamed(context, '/my-children');
       } else {
         throw Exception(responseData['error'] ?? 'Login failed');
       }

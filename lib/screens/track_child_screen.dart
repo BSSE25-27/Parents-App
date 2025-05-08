@@ -1,7 +1,11 @@
 import 'package:flutter/material.dart';
+import 'dart:async';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:school_van_tracker/widgets/bottom_navigation.dart';
+import 'package:http/http.dart' as http;
+import 'config.dart';
+import 'dart:convert';
 
 class TrackChildScreen extends StatefulWidget {
   const TrackChildScreen({super.key});
@@ -10,19 +14,52 @@ class TrackChildScreen extends StatefulWidget {
   State<TrackChildScreen> createState() => _TrackChildScreenState();
 }
 
+class ChildLocation {
+//   ChildID
+// ChildName
+// has_location
+// current_latitude
+// current_longitude
+  final double? currentLatitude;
+  final double? currentLongitude;
+  final int? childID;
+  final String? ChildName;
+  final bool? hasLocation;
+
+  ChildLocation({
+    required this.currentLatitude,
+    required this.currentLongitude,
+    required this.childID,
+    required this.ChildName,
+    required this.hasLocation,
+  });
+}
+
 class _TrackChildScreenState extends State<TrackChildScreen> {
   late GoogleMapController _mapController;
   static const LatLng _initialLocation =
       LatLng(0.3476, 32.5825); // Kampala default
-  final LatLng _childLocation = _initialLocation;
+  LatLng _childLocation = _initialLocation;
   String parentName = 'Loading...';
   String parentEmail = 'loading...';
+  ChildLocation childLocation = ChildLocation(
+      currentLatitude: 0.0,
+      currentLongitude: 0.0,
+      childID: 0,
+      ChildName: 'Loading...',
+      hasLocation: false);
 
   @override
   void initState() {
     super.initState();
     _loadParentData();
+    const checkDuration = Duration(seconds: 10);
+    Timer.periodic(checkDuration, (timer) {
+      _getChildLocation();
+    });
   }
+
+  Future<void> getChildLocatio() async {}
 
   Future<void> _loadParentData() async {
     final prefs = await SharedPreferences.getInstance();
@@ -30,6 +67,43 @@ class _TrackChildScreenState extends State<TrackChildScreen> {
       parentName = prefs.getString('parent_name') ?? 'Parent Name';
       parentEmail = prefs.getString('email') ?? 'email@example.com';
     });
+  }
+
+  Future<void> _getChildLocation() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final childId = prefs.getInt('ChildID');
+
+      if (childId == null) {
+        print('ChildID not found in SharedPreferences');
+        return;
+      }
+      final response = await http.get(
+        Uri.parse('$serverUrl/api/child-location?ChildID=$childId'),
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+        },
+      );
+
+      final responseData = json.decode(response.body);
+
+      setState(() {
+        childLocation = ChildLocation(
+          currentLatitude:
+              double.parse(responseData['childLocation']['current_latitude']),
+          currentLongitude:
+              double.parse(responseData['childLocation']['current_longitude']),
+          childID: responseData['childLocation']['ChildID'],
+          ChildName: responseData['childLocation']['ChildName'],
+          hasLocation: responseData['childLocation']['has_location'],
+        );
+        _childLocation = LatLng(
+            childLocation.currentLatitude!, childLocation.currentLongitude!);
+      });
+    } catch (e) {
+      print(e);
+    }
   }
 
   void _onMapCreated(GoogleMapController controller) {
@@ -84,7 +158,7 @@ class _TrackChildScreenState extends State<TrackChildScreen> {
                 position: _childLocation,
                 icon: BitmapDescriptor.defaultMarkerWithHue(
                     BitmapDescriptor.hueAzure),
-                infoWindow: const InfoWindow(title: 'Child Location'),
+                infoWindow: InfoWindow(title: childLocation.ChildName),
               ),
             },
             myLocationEnabled: true,
