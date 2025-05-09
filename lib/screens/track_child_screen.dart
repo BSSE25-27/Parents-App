@@ -15,11 +15,6 @@ class TrackChildScreen extends StatefulWidget {
 }
 
 class ChildLocation {
-//   ChildID
-// ChildName
-// has_location
-// current_latitude
-// current_longitude
   final double? currentLatitude;
   final double? currentLongitude;
   final int? childID;
@@ -37,8 +32,7 @@ class ChildLocation {
 
 class _TrackChildScreenState extends State<TrackChildScreen> {
   late GoogleMapController _mapController;
-  static const LatLng _initialLocation =
-      LatLng(0.3476, 32.5825); // Kampala default
+  static const LatLng _initialLocation = LatLng(0.3476, 32.5825); // Kampala
   LatLng _childLocation = _initialLocation;
   String parentName = 'Loading...';
   String parentEmail = 'loading...';
@@ -48,18 +42,31 @@ class _TrackChildScreenState extends State<TrackChildScreen> {
       childID: 0,
       ChildName: 'Loading...',
       hasLocation: false);
+  Timer? _refreshTimer;
+  bool _isRefreshing = false;
+  DateTime? _lastUpdated;
 
   @override
   void initState() {
     super.initState();
     _loadParentData();
-    const checkDuration = Duration(seconds: 10);
-    Timer.periodic(checkDuration, (timer) {
-      _getChildLocation();
-    });
+    _startAutoRefresh();
   }
 
-  Future<void> getChildLocatio() async {}
+  @override
+  void dispose() {
+    _refreshTimer?.cancel();
+    super.dispose();
+  }
+
+  void _startAutoRefresh() {
+    const checkDuration = Duration(seconds: 10);
+    _refreshTimer = Timer.periodic(checkDuration, (timer) {
+      _refreshLocation();
+    });
+    // Initial refresh
+    _refreshLocation();
+  }
 
   Future<void> _loadParentData() async {
     final prefs = await SharedPreferences.getInstance();
@@ -67,6 +74,27 @@ class _TrackChildScreenState extends State<TrackChildScreen> {
       parentName = prefs.getString('parent_name') ?? 'Parent Name';
       parentEmail = prefs.getString('email') ?? 'email@example.com';
     });
+  }
+
+  Future<void> _refreshLocation() async {
+    if (_isRefreshing) return;
+
+    setState(() {
+      _isRefreshing = true;
+    });
+
+    try {
+      await _getChildLocation();
+      setState(() {
+        _lastUpdated = DateTime.now();
+      });
+    } catch (e) {
+      print('Refresh error: $e');
+    } finally {
+      setState(() {
+        _isRefreshing = false;
+      });
+    }
   }
 
   Future<void> _getChildLocation() async {
@@ -78,6 +106,7 @@ class _TrackChildScreenState extends State<TrackChildScreen> {
         print('ChildID not found in SharedPreferences');
         return;
       }
+
       final response = await http.get(
         Uri.parse('$serverUrl/api/child-location?ChildID=$childId'),
         headers: {
@@ -101,8 +130,14 @@ class _TrackChildScreenState extends State<TrackChildScreen> {
         _childLocation = LatLng(
             childLocation.currentLatitude!, childLocation.currentLongitude!);
       });
+
+      // Move camera to new location
+      _mapController.animateCamera(
+        CameraUpdate.newLatLng(_childLocation),
+      );
     } catch (e) {
       print(e);
+      rethrow;
     }
   }
 
@@ -123,22 +158,55 @@ class _TrackChildScreenState extends State<TrackChildScreen> {
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
-        title: const Row(
+        title: Row(
           children: [
             CircleAvatar(
               radius: 16,
-              backgroundImage: NetworkImage('https://i.pravatar.cc/150?img=5'),
+              backgroundImage: Image.asset('assets/images/logo.png').image,
             ),
-            SizedBox(width: 8),
-            Text('BTrack', style: TextStyle(color: Colors.white)),
+            const SizedBox(width: 8),
+            const Text('BTrack', style: TextStyle(color: Colors.white)),
           ],
         ),
         actions: [
+          Stack(
+            children: [
+              IconButton(
+                icon: const Icon(Icons.notifications_outlined,
+                    color: Colors.white),
+                onPressed: () {
+                  Navigator.pushNamed(context, '/notifications');
+                },
+              ),
+              Positioned(
+                right: 8,
+                top: 8,
+                child: Container(
+                  padding: const EdgeInsets.all(2),
+                  decoration: BoxDecoration(
+                    color: Colors.red,
+                    borderRadius: BorderRadius.circular(6),
+                  ),
+                  constraints: const BoxConstraints(
+                    minWidth: 12,
+                    minHeight: 12,
+                  ),
+                ),
+              ),
+            ],
+          ),
           IconButton(
-            icon: const Icon(Icons.notifications_outlined, color: Colors.white),
-            onPressed: () {
-              Navigator.pushNamed(context, '/notifications');
-            },
+            icon: _isRefreshing
+                ? const SizedBox(
+                    width: 20,
+                    height: 20,
+                    child: CircularProgressIndicator(
+                      strokeWidth: 2,
+                      color: Colors.white,
+                    ),
+                  )
+                : const Icon(Icons.refresh, color: Colors.white),
+            onPressed: _refreshLocation,
           ),
         ],
         backgroundColor: Theme.of(context).primaryColor,
@@ -175,6 +243,44 @@ class _TrackChildScreenState extends State<TrackChildScreen> {
               ],
             ),
           ),
+          Positioned(
+            bottom: 80,
+            left: 16,
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(20),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.2),
+                    blurRadius: 6,
+                    offset: const Offset(0, 2),
+                  ),
+                ],
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(
+                    Icons.access_time,
+                    size: 16,
+                    color: Theme.of(context).primaryColor,
+                  ),
+                  const SizedBox(width: 4),
+                  Text(
+                    _lastUpdated != null
+                        ? 'Updated: ${_lastUpdated!.toLocal().toString().substring(11, 16)}'
+                        : 'Updating...',
+                    style: TextStyle(
+                      color: Colors.grey[800],
+                      fontSize: 12,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
         ],
       ),
       bottomNavigationBar: const BottomNavigation(currentIndex: 0),
@@ -183,12 +289,12 @@ class _TrackChildScreenState extends State<TrackChildScreen> {
 
   Widget _zoomButton(IconData icon, VoidCallback onPressed) {
     return Container(
-      decoration: const BoxDecoration(
+      decoration: BoxDecoration(
         color: Colors.white,
         shape: BoxShape.circle,
         boxShadow: [
           BoxShadow(
-            color: Colors.black26,
+            color: Colors.black.withOpacity(0.2),
             spreadRadius: 1,
             blurRadius: 3,
           ),

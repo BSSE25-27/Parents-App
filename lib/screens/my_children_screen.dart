@@ -88,11 +88,11 @@ class _MyChildrenScreenState extends State<MyChildrenScreen> {
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
-        title: const Row(
+        title: Row(
           children: [
             CircleAvatar(
               radius: 16,
-              backgroundImage: NetworkImage('https://i.pravatar.cc/150?img=5'),
+              backgroundImage: Image.asset('assets/images/logo.png').image,
             ),
             SizedBox(width: 8),
             Text('BTrack', style: TextStyle(color: Colors.white)),
