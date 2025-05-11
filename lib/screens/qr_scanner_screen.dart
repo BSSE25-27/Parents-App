@@ -28,10 +28,13 @@ class _QRGeneratorScreenState extends State<QRGeneratorScreen> {
       final prefs = await SharedPreferences.getInstance();
       final parentId = prefs.getString('parent_id');
       final parentName = prefs.getString('parent_name');
-      final phoneNumber = prefs.getString('phone_number');
+      final childIdInt = prefs.getInt('ChildID');
+      // final childId = prefs.getInt('ChildID');
+      final childId = childIdInt != null ? childIdInt.toString() : null;
+      // final phoneNumber = prefs.getString('phone_number');
       // final children = prefs.getStringList('children_names');
 
-      if (parentId == null || parentName == null || phoneNumber == null) {
+      if (parentId == null) {
         throw Exception('Parent data not found');
       }
 
@@ -42,7 +45,7 @@ class _QRGeneratorScreenState extends State<QRGeneratorScreen> {
       {
         "parent_id": "$parentId",
         "parent_name": "$parentName",
-        "phone_number": "$phoneNumber",
+        "child_id": "$childId"
       }
       ''';
         isLoading = false;
