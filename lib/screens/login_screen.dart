@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:http/http.dart' as http;
+import 'package:school_van_tracker/screens/my_children_screen.dart';
 import 'dart:convert';
 import 'config.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -88,7 +89,12 @@ class _LoginScreenState extends State<LoginScreen> {
           textColor: Colors.white,
         );
 
-        Navigator.pushReplacementNamed(context, '/my-children');
+        // Navigator.pushReplacementNamed(context, '/my-children');
+        Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(
+              builder: (context) => const MyChildrenScreen(),
+            ));
       } else {
         throw Exception(responseData['error'] ?? 'Login failed');
       }
