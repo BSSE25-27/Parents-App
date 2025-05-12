@@ -33,7 +33,7 @@ class _QRGeneratorScreenState extends State<QRGeneratorScreen> {
       final childId = childIdInt != null ? childIdInt.toString() : null;
       // final phoneNumber = prefs.getString('phone_number');
       // final children = prefs.getStringList('children_names');
-      // print('Child ID: $childId');
+      print('Child ID: $childId');
 
       if (parentId == null) {
         throw Exception('Parent data not found');

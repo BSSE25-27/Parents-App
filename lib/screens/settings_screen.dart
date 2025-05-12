@@ -61,6 +61,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
   Future<void> _logout() async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.remove('api_key');
+    await prefs.remove('parent_id');
+    await prefs.remove('ChildID');
     if (!mounted) return;
     Navigator.pushReplacementNamed(context, '/login');
   }
